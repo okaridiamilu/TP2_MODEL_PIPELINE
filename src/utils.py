@@ -57,4 +57,6 @@ def sort_students(students, sort_by, order="asc"):
     """
     if not students:
         return []
-    return sorted(students, key=lambda student: student[sort_by], reverse=order == "desc")
+    return sorted(
+        students, key=lambda student: student[sort_by], reverse=order == "desc"
+    )

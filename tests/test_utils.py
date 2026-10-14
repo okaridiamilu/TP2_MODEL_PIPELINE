@@ -2,7 +2,6 @@
 
 from src.utils import calculate_average, capitalize, clamp, slugify
 
-
 # --- capitalize : 5 cas (3 normaux + 2 cas limites vide et None) ---
 
 
@@ -99,7 +98,7 @@ def test_slugify_should_return_empty_string_when_input_is_empty() -> None:
     assert result == ""
 
 
-# --- clamp : 4 cas (dans l'intervalle, sous le plancher, au-dessus du plafond, bornes egales) ---
+# --- clamp : 4 cas (dans l'intervalle, plancher, plafond, bornes egales) ---
 
 
 def test_clamp_should_return_value_when_inside_bounds() -> None:

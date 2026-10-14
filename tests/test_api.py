@@ -158,7 +158,11 @@ def test_get_order_should_return_complete_structure() -> None:
 
     order = client().get("/orders/1").json
 
-    for key in ("id", "items", "distance", "weight", "subtotal", "discount", "deliveryFee", "surge", "total"):
+    expected_keys = (
+        "id", "items", "distance", "weight",
+        "subtotal", "discount", "deliveryFee", "surge", "total",
+    )
+    for key in expected_keys:
         assert key in order
 
 

@@ -2,7 +2,6 @@
 
 from src.validators import is_valid_age, is_valid_email, is_valid_password
 
-
 # --- is_valid_email : 7 cas ---
 
 

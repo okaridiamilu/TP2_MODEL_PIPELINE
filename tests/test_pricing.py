@@ -4,7 +4,6 @@ import pytest
 
 from src.pricing import calculate_delivery_fee
 
-
 # --- calculate_delivery_fee : cas normaux ---
 
 
@@ -81,11 +80,16 @@ from datetime import date  # noqa: E402
 from src.pricing import PROMO_CODES, apply_promo_code  # noqa: E402
 
 VALID_CODES = [
-    {"code": "P20", "type": "percentage", "value": 20, "minOrder": 15, "expiresAt": "2099-12-31"},
-    {"code": "F5", "type": "fixed", "value": 5, "minOrder": 20, "expiresAt": "2099-12-31"},
-    {"code": "P100", "type": "percentage", "value": 100, "minOrder": 0, "expiresAt": "2099-12-31"},
-    {"code": "F10", "type": "fixed", "value": 10, "minOrder": 0, "expiresAt": "2099-12-31"},
-    {"code": "OLD", "type": "percentage", "value": 10, "minOrder": 0, "expiresAt": "2020-01-01"},
+    {"code": "P20", "type": "percentage", "value": 20, "minOrder": 15,
+     "expiresAt": "2099-12-31"},
+    {"code": "F5", "type": "fixed", "value": 5, "minOrder": 20,
+     "expiresAt": "2099-12-31"},
+    {"code": "P100", "type": "percentage", "value": 100, "minOrder": 0,
+     "expiresAt": "2099-12-31"},
+    {"code": "F10", "type": "fixed", "value": 10, "minOrder": 0,
+     "expiresAt": "2099-12-31"},
+    {"code": "OLD", "type": "percentage", "value": 10, "minOrder": 0,
+     "expiresAt": "2020-01-01"},
     {
         "code": "TODAY",
         "type": "percentage",
@@ -312,7 +316,8 @@ def test_order_total_should_raise_when_cart_is_empty() -> None:
 def test_order_total_should_raise_when_quantity_is_zero() -> None:
     with pytest.raises(ValueError, match="quantite"):
         calculate_order_total(
-            [{"name": "Pizza", "price": 12.50, "quantity": 0}], 5, 2, None, 15, "tuesday"
+            [{"name": "Pizza", "price": 12.50, "quantity": 0}],
+            5, 2, None, 15, "tuesday",
         )
 
 
