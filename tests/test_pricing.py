@@ -254,3 +254,104 @@ def test_surge_should_return_0_when_closed_at_22h() -> None:
 def test_surge_should_raise_when_invalid_day() -> None:
     with pytest.raises(ValueError, match="invalide"):
         calculate_surge(15, "notaday")
+
+
+# --- calculate_order_total : scenarios complets ---
+
+from src.pricing import calculate_order_total  # noqa: E402
+
+PIZZAS = [{"name": "Pizza", "price": 12.50, "quantity": 2}]
+
+
+def test_order_total_should_compute_full_scenario_without_promo() -> None:
+    # 2 pizzas (25 EUR) + 5 km (3 EUR) + mardi 15h (surge 1.0) = 28 EUR
+    result = calculate_order_total(PIZZAS, 5, 2, None, 15, "tuesday")
+
+    assert result == {
+        "subtotal": 25.00,
+        "discount": 0,
+        "deliveryFee": 3.00,
+        "surge": 1.0,
+        "total": 28.00,
+    }
+
+
+def test_order_total_should_apply_promo_code_on_subtotal_only() -> None:
+    # BIENVENUE20 : -20% sur 25 EUR = 5 EUR de reduction
+    result = calculate_order_total(PIZZAS, 5, 2, "BIENVENUE20", 15, "tuesday")
+
+    assert result["discount"] == 5.00
+    assert result["total"] == 23.00  # 25 - 5 + 3
+
+
+def test_order_total_should_apply_surge_to_delivery_only() -> None:
+    # vendredi 20h : surge 1.8 sur les 3 EUR de livraison = 5.40
+    result = calculate_order_total(PIZZAS, 5, 2, None, 20, "friday")
+
+    assert result["surge"] == 1.8
+    assert result["deliveryFee"] == 5.40
+    assert result["total"] == 30.40  # le subtotal reste 25
+
+
+def test_order_total_should_apply_lunch_surge_and_heavy_weight() -> None:
+    # mercredi 12h30 : surge 1.3, 8 kg : livraison (3 + 1.5) * 1.3 = 5.85
+    result = calculate_order_total(PIZZAS, 5, 8, None, 12.5, "wednesday")
+
+    assert result["deliveryFee"] == 5.85
+    assert result["total"] == 30.85
+
+
+# --- calculate_order_total : cas qui cassent ---
+
+
+def test_order_total_should_raise_when_cart_is_empty() -> None:
+    with pytest.raises(ValueError, match="vide"):
+        calculate_order_total([], 5, 2, None, 15, "tuesday")
+
+
+def test_order_total_should_raise_when_quantity_is_zero() -> None:
+    with pytest.raises(ValueError, match="quantite"):
+        calculate_order_total(
+            [{"name": "Pizza", "price": 12.50, "quantity": 0}], 5, 2, None, 15, "tuesday"
+        )
+
+
+def test_order_total_should_raise_when_price_is_negative() -> None:
+    with pytest.raises(ValueError, match="positif"):
+        calculate_order_total(
+            [{"name": "Pizza", "price": -5, "quantity": 1}], 5, 2, None, 15, "tuesday"
+        )
+
+
+def test_order_total_should_raise_when_restaurant_is_closed() -> None:
+    with pytest.raises(ValueError, match="ferme"):
+        calculate_order_total(PIZZAS, 5, 2, None, 23, "tuesday")
+
+
+def test_order_total_should_raise_when_out_of_delivery_zone() -> None:
+    with pytest.raises(ValueError, match="10 km"):
+        calculate_order_total(PIZZAS, 15, 2, None, 15, "tuesday")
+
+
+def test_order_total_should_raise_when_item_is_malformed() -> None:
+    with pytest.raises(ValueError, match="prix et une quantite"):
+        calculate_order_total([{"name": "Pizza"}], 5, 2, None, 15, "tuesday")
+
+
+# --- calculate_order_total : structure de retour ---
+
+
+def test_order_total_should_round_amounts_to_2_decimals() -> None:
+    # 1 item a 10.333 : subtotal arrondi a 10.33
+    result = calculate_order_total(
+        [{"name": "Cafe", "price": 10.333, "quantity": 1}], 2, 1, None, 15, "tuesday"
+    )
+
+    assert result["subtotal"] == 10.33
+    assert result["total"] == 12.33
+
+
+def test_order_total_should_return_zero_discount_without_promo() -> None:
+    result = calculate_order_total(PIZZAS, 5, 2, None, 15, "tuesday")
+
+    assert result["discount"] == 0

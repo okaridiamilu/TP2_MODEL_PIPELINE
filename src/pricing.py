@@ -155,3 +155,48 @@ def calculate_surge(hour, day_of_week):
     if DINNER_START <= hour < DINNER_END:
         return 1.5
     return 1.0
+
+
+def calculate_order_total(items, distance, weight, promo_code, hour, day_of_week):
+    """Assemble tout le moteur : items + promo + livraison + surge.
+
+    Ordre de calcul :
+    1. sous-total = somme des prix * quantites
+    2. reduction promo
+    3. frais de livraison selon distance et poids
+    4. le surge multiplie UNIQUEMENT les frais de livraison
+
+    Retourne {subtotal, discount, deliveryFee, surge, total}, tous
+    arrondis a 2 decimales. Le restaurant ferme (surge = 0) est une
+    erreur : on refuse la commande.
+    """
+    if not items:
+        raise ValueError("Le panier ne peut pas etre vide")
+
+    subtotal = 0
+    for item in items:
+        if not isinstance(item, dict) or "price" not in item or "quantity" not in item:
+            raise ValueError("Chaque item doit avoir un prix et une quantite")
+        price, quantity = item["price"], item["quantity"]
+        if not isinstance(price, (int, float)) or isinstance(price, bool) or price < 0:
+            raise ValueError("Le prix d'un item doit etre un nombre positif")
+        if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+            raise ValueError("La quantite doit etre un entier d'au moins 1")
+        subtotal += price * quantity
+
+    discount = apply_promo_code(subtotal, promo_code, PROMO_CODES)["discount"]
+    delivery_fee = calculate_delivery_fee(distance, weight)
+    surge = calculate_surge(hour, day_of_week)
+    if surge == 0:
+        raise ValueError("Restaurant ferme a cette heure")
+
+    final_delivery = round(delivery_fee * surge, 2)
+    total = round(subtotal - discount + final_delivery, 2)
+
+    return {
+        "subtotal": round(subtotal, 2),
+        "discount": discount,
+        "deliveryFee": final_delivery,
+        "surge": surge,
+        "total": total,
+    }
