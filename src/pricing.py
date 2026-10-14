@@ -109,3 +109,49 @@ def apply_promo_code(subtotal, promo_code, promo_codes):
         "discount": round(discount, 2),
         "total": round(max(subtotal - discount, 0), 2),
     }
+
+
+WEEKDAYS = {"monday", "tuesday", "wednesday", "thursday"}
+OPENING_HOUR = 10
+CLOSING_HOUR = 22
+LUNCH_START, LUNCH_END = 12, 13.5
+DINNER_START, DINNER_END = 19, 21
+WEEKEND_EVENING_START = 19
+
+
+def calculate_surge(hour, day_of_week):
+    """Retourne le multiplicateur de prix selon l'heure et le jour.
+
+    Heures d'ouverture : de 10h (inclusive) a 22h (exclusive).
+    En dehors : retourne 0 (restaurant ferme).
+
+    Attention anti-flaky : l'heure et le jour sont des PARAMETRES.
+    Cette fonction ne lit JAMAIS l'heure systeme, comme ca les tests
+    sont deterministes quelle que soit l'heure reelle ou ils tournent.
+    """
+    day = day_of_week.lower() if isinstance(day_of_week, str) else ""
+    if day not in WEEKDAYS | {"friday", "saturday", "sunday"}:
+        raise ValueError("Jour de la semaine invalide")
+    if not isinstance(hour, (int, float)) or isinstance(hour, bool):
+        raise ValueError("L'heure doit etre un nombre")
+    if not 0 <= hour <= 24:
+        raise ValueError("L'heure doit etre entre 0 et 24")
+
+    # en dehors des heures d'ouverture : ferme
+    if hour < OPENING_HOUR or hour >= CLOSING_HOUR:
+        return 0
+
+    # dimanche : majoration toute la journee
+    if day == "sunday":
+        return 1.2
+
+    # vendredi et samedi soir : grosse pointe
+    if day in {"friday", "saturday"}:
+        return 1.8 if hour >= WEEKEND_EVENING_START else 1.0
+
+    # lundi a jeudi : dejeuner, diner, sinon normal
+    if LUNCH_START <= hour < LUNCH_END:
+        return 1.3
+    if DINNER_START <= hour < DINNER_END:
+        return 1.5
+    return 1.0

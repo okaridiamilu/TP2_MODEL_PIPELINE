@@ -186,3 +186,71 @@ def test_promo_code_should_work_with_module_promo_codes() -> None:
     result = apply_promo_code(50, "BIENVENUE20", PROMO_CODES)
 
     assert result == {"discount": 10, "total": 40}
+
+
+# --- calculate_surge : chaque multiplicateur ---
+
+from src.pricing import calculate_surge  # noqa: E402
+
+
+def test_surge_should_be_normal_on_weekday_afternoon() -> None:
+    assert calculate_surge(15, "tuesday") == 1.0
+
+
+def test_surge_should_be_1_3_during_weekday_lunch() -> None:
+    assert calculate_surge(12.5, "wednesday") == 1.3
+
+
+def test_surge_should_be_1_5_during_weekday_dinner() -> None:
+    assert calculate_surge(20, "thursday") == 1.5
+
+
+def test_surge_should_be_1_8_on_friday_evening() -> None:
+    assert calculate_surge(21, "friday") == 1.8
+
+
+def test_surge_should_be_1_2_on_sunday_all_day() -> None:
+    assert calculate_surge(14, "sunday") == 1.2
+
+
+# --- calculate_surge : transitions et limites ---
+
+
+def test_surge_should_be_normal_at_11h30_sharp() -> None:
+    # 11h30 pile : ni dejeuner ni pointe, multiplicateur normal
+    assert calculate_surge(11.5, "monday") == 1.0
+
+
+def test_surge_should_start_lunch_at_12h_sharp() -> None:
+    assert calculate_surge(12, "monday") == 1.3
+
+
+def test_surge_should_stop_lunch_after_13h30() -> None:
+    # 13h30 pile : le dejeuner est fini (borne exclue)
+    assert calculate_surge(13.5, "monday") == 1.0
+
+
+def test_surge_should_start_dinner_at_19h_sharp() -> None:
+    assert calculate_surge(19, "monday") == 1.5
+
+
+def test_surge_should_stop_weekday_dinner_at_21h() -> None:
+    assert calculate_surge(21, "monday") == 1.0
+
+
+def test_surge_should_return_0_when_closed_before_10h() -> None:
+    assert calculate_surge(9.99, "monday") == 0
+
+
+def test_surge_should_be_open_at_10h_sharp() -> None:
+    assert calculate_surge(10, "monday") == 1.0
+
+
+def test_surge_should_return_0_when_closed_at_22h() -> None:
+    # 22h pile : ferme (borne exclue)
+    assert calculate_surge(22, "monday") == 0
+
+
+def test_surge_should_raise_when_invalid_day() -> None:
+    with pytest.raises(ValueError, match="invalide"):
+        calculate_surge(15, "notaday")
