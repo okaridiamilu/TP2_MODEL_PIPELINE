@@ -1,0 +1,20 @@
+# Environnement virtuel
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Outils et caches locaux
+.pytest_cache/
+.ruff_cache/
+.env
+.vscode/
+
+# Couverture (generee automatiquement, jamais versionnee)
+.coverage
+coverage/
+htmlcov/
+coverage.xml

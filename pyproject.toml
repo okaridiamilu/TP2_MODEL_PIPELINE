@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tp2-model-pipeline"
+version = "0.1.0"
+description = "Moteur de tarification de livraison avec tests, couverture et linting"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+]
+
+[tool.setuptools]
+packages = ["src"]
+
+# pytest : cherche les tests dans tests/, ajoute la racine au path pour
+# permettre "from src.utils import ...", et active la couverture par defaut
+# avec un seuil minimum de 80% (--cov-fail-under fait echouer la commande).
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--cov=src --cov-fail-under=80"
+
+# coverage : on mesure uniquement le code metier dans src/
+[tool.coverage.run]
+source = ["src"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
