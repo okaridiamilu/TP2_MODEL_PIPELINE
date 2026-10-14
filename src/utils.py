@@ -47,3 +47,14 @@ def clamp(value: float, minimum: float, maximum: float) -> float:
     min(..., maximum) la force sous le plafond.
     """
     return max(minimum, min(value, maximum))
+
+
+def sort_students(students, sort_by, order="asc"):
+    """Tri d'etudiants par name, grade ou age, ascendant par defaut.
+
+    Retourne TOUJOURS un nouveau tableau (sorted ne modifie pas
+    l'original). Entree vide ou None : liste vide.
+    """
+    if not students:
+        return []
+    return sorted(students, key=lambda student: student[sort_by], reverse=order == "desc")
