@@ -143,7 +143,7 @@ def calculate_surge(hour, day_of_week):
 
     # dimanche : majoration toute la journee
     if day == "sunday":
-        return 1.2
+        return 1.0
 
     # vendredi et samedi soir : grosse pointe
     if day in {"friday", "saturday"}:
